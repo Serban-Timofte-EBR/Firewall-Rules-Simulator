@@ -8,6 +8,7 @@
 package main
 
 import (
+	"Firewall-Rules-Simulator/capture"
 	"Firewall-Rules-Simulator/rules"
 	"fmt"
 )
@@ -27,20 +28,24 @@ func main() {
 	rules.AddRule("192.168.1.2", "192.168.1.101", 22, rules.Block)
 
 	// Simulated packets list is mock data simulating real network packets.
-	packets := []SimulatedPacket{
-		{"192.168.1.1", "192.168.1.100", 80},
-		{"192.168.1.2", "192.168.1.101", 22},
-		{"10.0.0.1", "10.0.0.2", 443},
-	}
+	//packets := []SimulatedPacket{
+	//	{"192.168.1.1", "192.168.1.100", 80},
+	//	{"192.168.1.2", "192.168.1.101", 22},
+	//	{"10.0.0.1", "10.0.0.2", 443},
+	//}
+	//
+	//fmt.Println("Simulating packets ... ")
+	//
+	//for _, packet := range packets {
+	//	action := rules.MatchRule(packet.SourceIP, packet.DestinationIP, packet.Port)
+	//	if action == "" {
+	//		fmt.Println("Packet from ", packet.SourceIP, " to ", packet.DestinationIP, " -> No rule matched!")
+	//	} else {
+	//		fmt.Println("Packet from ", packet.SourceIP, " to ", packet.DestinationIP, " - Action: ", action)
+	//	}
+	//}
 
-	fmt.Println("Simulating packets ... ")
-
-	for _, packet := range packets {
-		action := rules.MatchRule(packet.SourceIP, packet.DestinationIP, packet.Port)
-		if action == "" {
-			fmt.Println("Packet from ", packet.SourceIP, " to ", packet.DestinationIP, " -> No rule matched!")
-		} else {
-			fmt.Println("Packet from ", packet.SourceIP, " to ", packet.DestinationIP, " - Action: ", action)
-		}
-	}
+	// Start capturing packets
+	interfaceName := "en0"
+	capture.StartCapture(interfaceName)
 }

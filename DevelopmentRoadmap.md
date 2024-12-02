@@ -87,3 +87,30 @@ Integrate rule-checking logic with a simulated packet to test functionality.
 Understanding how packets work and their attributes is crucial for configuring firewall rules effectively and ensuring network security.
 ### Next Step
 Extend the implementation to capture live packets using `gopacket`.
+
+## Step 4: Capture Live Network Packets
+### What We Did
+- Integrated the `gopacket` library to capture live packets from the network interface.
+- Decoded packet headers (source IP, destination IP, port) for evaluation.
+- Passed captured packets to the rules module to check if they should be allowed or blocked.
+
+### Why We Did This
+- Capturing real packets allows the simulator to operate in a realistic environment.
+- It bridges the gap between simulation and real-world firewall behavior.
+
+### Conex Info
+- **Packet Capture**:
+  - Live packets are captured from a network interface using `gopacket` and `pcap`.
+  - Requires permissions to access the network interface (e.g., root on Linux).
+- **Packet Analysis**:
+  - Captured packets are decoded to extract attributes like:
+    - Source IP and destination IP.
+    - Source and destination ports.
+    - Protocol type (e.g., TCP/UDP).
+- **Integration**:
+  - The decoded packets are sent to the `MatchRule` function for rule evaluation.
+- **Security**:
+  - Packet capture tools must be used responsibly and only on authorized networks.
+
+### Next Step
+Implement logging for allowed and blocked packets and refine rule evaluation.
