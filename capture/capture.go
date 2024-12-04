@@ -8,6 +8,7 @@
 package capture
 
 import (
+	"Firewall-Rules-Simulator/logger"
 	"Firewall-Rules-Simulator/rules"
 	"fmt"
 	"github.com/google/gopacket"
@@ -101,14 +102,16 @@ func processPacket(packet gopacket.Packet) {
 //   - Calls the `MatchRule` function from the `rules` package to evaluate the packet.
 //   - Logs the action ("allow", "block", or "no match") based on the matching rule.
 //   - This function serves as the decision-maker for how to handle the packet.
-func checkPacket(srcIP string, destIP string, i int) {
+func checkPacket(srcIP string, destIP string, port int) {
 	// Step 1: Evaluate the packet against the firewall rules.
-	action := rules.MatchRule(srcIP, destIP, i)
+	action := rules.MatchRule(srcIP, destIP, port)
 
 	// Step 2: Log the action based on the rule match.
 	if action == "" {
 		fmt.Println("Packet from ", srcIP, " to ", destIP, " -> No rule matched!")
+		logger.LogTraffic(srcIP, destIP, port, "No rule matched")
 	} else {
 		fmt.Println("Packet from ", srcIP, " to ", destIP, " - Action: ", action)
+		logger.LogTraffic(srcIP, destIP, port, string(action))
 	}
 }

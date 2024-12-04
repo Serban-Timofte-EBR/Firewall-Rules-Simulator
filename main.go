@@ -9,6 +9,7 @@ package main
 
 import (
 	"Firewall-Rules-Simulator/capture"
+	"Firewall-Rules-Simulator/logger"
 	"Firewall-Rules-Simulator/rules"
 	"fmt"
 )
@@ -44,6 +45,10 @@ func main() {
 	//		fmt.Println("Packet from ", packet.SourceIP, " to ", packet.DestinationIP, " - Action: ", action)
 	//	}
 	//}
+
+	logFilePath := "firewall.log"
+	logger.InitializeLogger(logFilePath)
+	defer logger.CloseLogger()
 
 	// Start capturing packets
 	interfaceName := "en0"

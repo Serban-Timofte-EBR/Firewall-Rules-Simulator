@@ -114,3 +114,29 @@ Extend the implementation to capture live packets using `gopacket`.
 
 ### Next Step
 Implement logging for allowed and blocked packets and refine rule evaluation.
+
+## Step 5: Add Logging for Packet Activity
+### What We Did
+- Integrated logging to record the details of processed packets.
+- Logged information includes:
+  - Timestamp
+  - Source IP
+  - Destination IP
+  - Port
+  - Action (allow/block/no match)
+
+### Why We Did This
+- Logging provides a persistent record for auditing and debugging.
+- Helps identify potential misconfigurations in firewall rules.
+
+### Conex Info
+- **Logging Levels**:
+  - Logs can be written to a file or displayed in the terminal.
+  - Different logging levels (e.g., info, error) can help categorize messages.
+- **Structure**:
+  - Each log entry includes:
+    - Timestamp for when the packet was processed.
+    - Source and destination IPs, port, and evaluation result.
+- **Future Enhancements**:
+  - Integrate with external log monitoring tools.
+  - Add verbosity levels to control the amount of logged information.
