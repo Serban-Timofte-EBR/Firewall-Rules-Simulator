@@ -11,7 +11,9 @@ import (
 	"Firewall-Rules-Simulator/capture"
 	"Firewall-Rules-Simulator/logger"
 	"Firewall-Rules-Simulator/rules"
+	"flag"
 	"fmt"
+	"time"
 )
 
 // SimulatePacket: Represents a single network packet being tested against the firewall rules.
@@ -24,33 +26,46 @@ type SimulatedPacket struct {
 func main() {
 	fmt.Println("Firewall Rules Simulator ... ")
 
-	// Adding test rules
-	rules.AddRule("192.168.1.1", "192.168.1.100", 80, rules.Allow)
-	rules.AddRule("192.168.1.2", "192.168.1.101", 22, rules.Block)
+	// Define command-line arguments
+	interfaceName := flag.String("interface", "en0", "The name of the network interface to capture packets from.")
+	logFilePath := flag.String("logfile", "firewall.log", "The path to the log file.")
+	defaultPolicy := flag.String("default-policy", "block", "The default policy for unmatched packets (allow/block).")
+	duration := flag.Int("duration", 60, "The duration (in seconds) to capture packets.")
+	configFilePath := flag.String("config", "config.json", "The path to the configuration file.")
+	flag.Parse()
 
-	// Simulated packets list is mock data simulating real network packets.
-	//packets := []SimulatedPacket{
-	//	{"192.168.1.1", "192.168.1.100", 80},
-	//	{"192.168.1.2", "192.168.1.101", 22},
-	//	{"10.0.0.1", "10.0.0.2", 443},
-	//}
-	//
-	//fmt.Println("Simulating packets ... ")
-	//
-	//for _, packet := range packets {
-	//	action := rules.MatchRule(packet.SourceIP, packet.DestinationIP, packet.Port)
-	//	if action == "" {
-	//		fmt.Println("Packet from ", packet.SourceIP, " to ", packet.DestinationIP, " -> No rule matched!")
-	//	} else {
-	//		fmt.Println("Packet from ", packet.SourceIP, " to ", packet.DestinationIP, " - Action: ", action)
-	//	}
-	//}
-
-	logFilePath := "firewall.log"
-	logger.InitializeLogger(logFilePath)
+	// Initialize the logger
+	logger.InitializeLogger(*logFilePath)
 	defer logger.CloseLogger()
 
+	// Set default policy
+	switch *defaultPolicy {
+	case "allow":
+		rules.SetDefaultPolicy(rules.Allow)
+	case "block":
+		rules.SetDefaultPolicy(rules.Block)
+	default:
+		fmt.Println("Invalid default policy. Must be 'allow' or 'block'.")
+		return
+	}
+
+	fmt.Printf("Starting Firewall Rules Simulator\n")
+	fmt.Printf("Interface: %s\n", *interfaceName)
+	fmt.Printf("Log File: %s\n", *logFilePath)
+	fmt.Printf("Default Policy: %s\n", *defaultPolicy)
+
+	// Reading from configuration file
+	if err := rules.LoadConfig(*configFilePath); err != nil {
+		fmt.Println("Error loading config file: ", err)
+		return
+	}
+
 	// Start capturing packets
-	interfaceName := "en0"
-	capture.StartCapture(interfaceName)
+	if *duration > 0 {
+		go capture.StartCapture(*interfaceName)
+		time.Sleep(time.Duration(*duration) * time.Second)
+		fmt.Println("Capture completed. Exiting ...")
+	} else {
+		capture.StartCapture(*interfaceName)
+	}
 }

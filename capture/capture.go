@@ -17,6 +17,14 @@ import (
 	"log"
 )
 
+const workerPoolSize = 10 // Number of worker Goroutines to process packets
+
+func worker(packetChan chan gopacket.Packet) {
+	for packet := range packetChan {
+		processPacket(packet)
+	}
+}
+
 func StartCapture(interfaceName string) {
 	// Step 1: Open the device for packet capture
 	// device (interfaceName): The name of the device to open / Of the network interface (e.g., eth0 - Ethernet, wlan0 - Wi-Fi).
@@ -31,6 +39,11 @@ func StartCapture(interfaceName string) {
 
 	fmt.Println("Capturing packets for " + interfaceName + " ...")
 
+	packetChan := make(chan gopacket.Packet, 100)
+	for i := 0; i < workerPoolSize; i++ {
+		go worker(packetChan)
+	}
+
 	// Step 2: Create a PacketSource to read packets from the handle.
 	// - `gopacket.NewPacketSource` wraps the `handle` and parses the packets into higher-level structures.
 	packageSource := gopacket.NewPacketSource(handle, handle.LinkType())
@@ -39,8 +52,10 @@ func StartCapture(interfaceName string) {
 	// - The `Packets()` channel streams captured packets one at a time.
 	// - Each packet is passed to the `processPacket` function for further analysis and rule checking.
 	for packet := range packageSource.Packets() {
-		processPacket(packet)
+		packetChan <- packet
 	}
+
+	close(packetChan)
 }
 
 // processPacket analyzes and extracts information from a captured packet.
@@ -81,11 +96,11 @@ func processPacket(packet gopacket.Packet) {
 		if tcp == nil || !ok {
 			return
 		}
-		checkPacket(srcIP, destIP, int(tcp.DstPort))
+		checkPacket(srcIP, destIP, int(tcp.DstPort), "TCP")
 
 	case layers.LayerTypeUDP:
 		if udp, ok := transportLayer.(*layers.UDP); ok {
-			checkPacket(srcIP, destIP, int(udp.DstPort))
+			checkPacket(srcIP, destIP, int(udp.DstPort), "UDP")
 		}
 	}
 }
@@ -102,16 +117,15 @@ func processPacket(packet gopacket.Packet) {
 //   - Calls the `MatchRule` function from the `rules` package to evaluate the packet.
 //   - Logs the action ("allow", "block", or "no match") based on the matching rule.
 //   - This function serves as the decision-maker for how to handle the packet.
-func checkPacket(srcIP string, destIP string, port int) {
+func checkPacket(srcIP string, destIP string, port int, protocol string) {
 	// Step 1: Evaluate the packet against the firewall rules.
-	action := rules.MatchRule(srcIP, destIP, port)
+	action := rules.MatchRule(srcIP, destIP, port, protocol)
 
 	// Step 2: Log the action based on the rule match.
 	if action == "" {
-		fmt.Println("Packet from ", srcIP, " to ", destIP, " -> No rule matched!")
-		logger.LogTraffic(srcIP, destIP, port, "No rule matched")
-	} else {
-		fmt.Println("Packet from ", srcIP, " to ", destIP, " - Action: ", action)
-		logger.LogTraffic(srcIP, destIP, port, string(action))
+		action = rules.GetDefaultPolicy()
 	}
+
+	fmt.Println("Packet from ", srcIP, " to ", destIP, " - Action: ", action)
+	logger.LogTraffic(srcIP, destIP, port, string(action))
 }

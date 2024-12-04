@@ -65,3 +65,37 @@ The **Firewall Rules Simulator** is a GoLang-based application designed to simul
 ### Prerequisites
 - **GoLang**: [Install GoLang](https://golang.org/doc/install)
 - **gopacket Library**: Install using `go get github.com/google/gopacket`
+
+## Command-Line Options
+### Available Flags
+- `--interface`: Specify the network interface to capture packets from (default: `en0`).
+- `--logfile`: Path to the log file (default: `firewall.log`).
+- `--default-policy`: Default action for unmatched packets (`allow` or `block`, default: `block`).
+- `--duration`: Capture duration in seconds (default: 0 for indefinite).
+
+### Examples
+1. Run with default settings:
+   ```bash
+   sudo go run main.go --interface en0 --logfile /var/log/firewall.log --duration 10 
+    ```
+## Configuration File
+The `config.json` file allows you to define rules and settings for the firewall simulator.
+
+### Structure
+- **`defaultPolicy`**: Specifies the default action for unmatched packets (`allow` or `block`).
+- **`rules`**: An array of rules with the following fields:
+    - `sourceIP`: Source IP address (or `*` for any IP).
+    - `destinationIP`: Destination IP address (or `*` for any IP).
+    - `port`: Destination port (or `0` for any port).
+    - `protocol`: Transport protocol (`TCP`, `UDP`, or `*` for any protocol).
+    - `action`: Action to take (`allow` or `block`).
+
+### Example
+```json
+{
+  "defaultPolicy": "block",
+  "rules": [
+    { "sourceIP": "192.168.1.1", "destinationIP": "*", "port": 80, "protocol": "TCP", "action": "allow" },
+    { "sourceIP": "*", "destinationIP": "192.168.1.101", "port": 22, "protocol": "TCP", "action": "block" }
+  ]
+}

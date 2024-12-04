@@ -140,3 +140,108 @@ Implement logging for allowed and blocked packets and refine rule evaluation.
 - **Future Enhancements**:
   - Integrate with external log monitoring tools.
   - Add verbosity levels to control the amount of logged information.
+
+## Step 6: Enhance Rule Management
+### What We Did
+- Added support for:
+  - Protocol-specific rules (e.g., allow/block only TCP or UDP traffic).
+  - Wildcard rules (e.g., block all traffic to a specific port, regardless of IP).
+  - Dynamic rule updates (add/remove rules without restarting the program).
+
+### Why We Did This
+- Protocol-specific rules make the firewall more granular and realistic.
+- Wildcard rules simplify management by covering broader scenarios.
+- Dynamic updates improve usability by allowing changes during runtime.
+
+### Conex Info
+- **Protocol-Specific Rules**:
+  - Include `TCP`, `UDP`, and `ANY`
+
+## Step 7: Add Default Policy
+### What We Did
+- Implemented a default policy for unmatched packets.
+- Added a mechanism to configure the default policy (allow or block).
+- Integrated the default policy into the packet evaluation logic.
+
+### Why We Did This
+- Ensures that the firewall handles all packets, even those that do not match any rule.
+- Mimics real-world firewall behavior, where a default action is applied to unmatched traffic.
+
+### Conex Info
+- **Default Policy**:
+  - Can be configured to "allow" or "block".
+  - Acts as a fallback when no rule matches.
+- **Example Use Cases**:
+  - Default "block" for strict security.
+  - Default "allow" for a permissive setup.
+
+## Step 8: Add Support for Command-Line Arguments (CLI)
+### What We Did
+- Integrated a command-line interface to allow runtime configuration of:
+  - Network interface.
+  - Log file path.
+  - Default policy (allow/block).
+  - Optional capture duration.
+- Used the `flag` package for argument parsing.
+
+### Why We Did This
+- A CLI improves usability and flexibility, allowing users to:
+  - Specify settings dynamically at runtime.
+  - Avoid hardcoding values into the source code.
+
+### Conex Info
+- **CLI Basics**:
+  - The `flag` package is part of Go's standard library for parsing command-line arguments.
+  - Each argument is defined with a name, default value, and description.
+- **Examples**:
+  - Run with specific options:
+    ```bash
+    sudo go run main.go --interface en0 --logfile firewall.log --default-policy block --duration 10
+    ```
+  - Default policy: Configures unmatched packets to be allowed or blocked.
+  - Capture duration: Specifies how long the program runs (e.g., 10 seconds).
+
+## Step 9: Integrate Configuration File Support
+### What We Did
+- Implemented the ability to load firewall rules and settings from a configuration file (`config.json`).
+- Added support for:
+  - Default policy configuration.
+  - Rule definitions (source/destination IP, port, protocol, action).
+
+### Why We Did This
+- Simplifies the process of defining and managing firewall rules.
+- Allows changes to rules and settings without modifying the code or recompiling.
+
+### Conex Info
+- **Configuration File Format**:
+  - The configuration file is in JSON format for readability and ease of parsing.
+  - Example structure:
+    ```json
+    {
+      "defaultPolicy": "block",
+      "rules": [
+        { "sourceIP": "192.168.1.1", "destinationIP": "*", "port": 80, "protocol": "TCP", "action": "allow" },
+        { "sourceIP": "*", "destinationIP": "192.168.1.101", "port": 22, "protocol": "TCP", "action": "block" }
+      ]
+    }
+    ```
+- **Dynamic Reload**:
+  - Future enhancements can include live reloading of configurations at runtime.
+
+## Step 10: Add Unit Tests for Core Functions
+### What We Did
+- Implemented unit tests for:
+  - Rule matching logic.
+  - Loading configuration from a JSON file.
+  - Logging traffic to the file.
+- Used Go's `testing` package to write and execute the tests.
+
+### Why We Did This
+- To ensure core functionalities behave as expected.
+- To catch potential bugs during development.
+
+### Conex Info
+- **Testing Framework**:
+  - Go’s standard `testing` package is used for writing and running tests.
+- **Mock Data**:
+  - Test cases use mock data to simulate various scenarios (e.g., matching rules, loading valid and invalid configs).
